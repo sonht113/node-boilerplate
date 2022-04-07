@@ -1,4 +1,3 @@
-const { decode } = require('jsonwebtoken')
 const jwt = require('jsonwebtoken')
 
 const middlewareController = {
