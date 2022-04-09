@@ -1,8 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { json } = require('express/lib/response');
-
+const tokenService = require('../services/token.service')
 let refreshTokens = [];
 
 const authController = {
@@ -24,28 +23,6 @@ const authController = {
       res.status(500).json(err);
     }
   },
-  // GENERATE ACCESS TOKEN
-  generateAccessToken: (user) => {
-    return jwt.sign(
-      {
-        id: user.id,
-        admin: user.admin,
-      },
-      process.env.JWT_ACCESS_KEY,
-      { expiresIn: '20s' }
-    );
-  },
-  // GENERATE REFRESH TOKEN
-  generateRefreshToken: (user) => {
-    return jwt.sign(
-      {
-        id: user.id,
-        admin: user.admin,
-      },
-      process.env.JWT_REFRESH_KEY,
-      { expiresIn: '5d' }
-    );
-  },
   // LOGIN
   loginUser: async (req, res) => {
     try {
@@ -64,9 +41,9 @@ const authController = {
       }
       if (user && validPassword) {
         // Access Token
-        const accessToken = authController.generateAccessToken(user);
+        const accessToken = tokenService.generateAccessToken(user);
         // Refresh Token
-        const refreshToken = authController.generateRefreshToken(user);
+        const refreshToken = tokenService.generateRefreshToken(user);
         refreshTokens.push(refreshToken);
         // Save refresh token in cookie
         res.cookie('refreshToken', refreshToken, {
@@ -96,9 +73,10 @@ const authController = {
       return res.status(403).json('Token is not valid!');
     }
     refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
-    const newAccessToken = authController.generateAccessToken(dataJWT);
-    const newRefreshToken = authController.generateRefreshToken(dataJWT);
+    const newAccessToken = tokenService.generateAccessToken(dataJWT);
+    const newRefreshToken = tokenService.generateRefreshToken(dataJWT);
     refreshTokens.push(newRefreshToken);
+    console.log(refreshTokens)
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: false,
@@ -107,6 +85,12 @@ const authController = {
     });
     res.status(200).json({ accessToken: newAccessToken });
   },
+  // TODO: Logout
+  logoutUser: async (req, res) => {
+    res.clearCookie('refreshToken');
+    refreshTokens = refreshTokens.filter(token => token !== req.cookies.refreshToken);
+    return res.status(200).json("Log out successfully!")
+  }
 };
 
 module.exports = authController;

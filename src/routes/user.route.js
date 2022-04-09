@@ -1,12 +1,12 @@
 const express = require('express')
-const middlewareController = require('../controllers/middleware.controller')
+const authMiddleware = require('../middleware/auth')
 const userController = require('../controllers/user.controller')
 const router = express.Router()
 
 // Get user
-router.get('/', middlewareController.verifyToken, userController.getAllUser)
+router.get('/', authMiddleware.verifyToken, userController.getAllUser)
 
 // Delete User
-router.delete('/:id', middlewareController.verifyTokenAndAdmin, userController.deleteUser)
+router.delete('/:id', authMiddleware.verifyTokenAndAdmin, userController.deleteUser)
 
 module.exports = router
