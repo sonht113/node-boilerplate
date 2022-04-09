@@ -85,7 +85,7 @@ const authController = {
     });
     res.status(200).json({ accessToken: newAccessToken });
   },
-  // TODO: Logout
+  // LOG OUT
   logoutUser: async (req, res) => {
     res.clearCookie('refreshToken');
     refreshTokens = refreshTokens.filter(token => token !== req.cookies.refreshToken);
